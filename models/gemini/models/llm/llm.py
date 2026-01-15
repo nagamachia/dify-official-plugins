@@ -7,7 +7,7 @@ import tempfile
 import time
 from collections.abc import Generator, Iterator, Sequence
 from contextlib import suppress
-from typing import Any, List, Mapping, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 import requests
 from dify_plugin.entities.model.llm import (
@@ -41,6 +41,7 @@ from dify_plugin.interfaces.model.large_language_model import LargeLanguageModel
 from google import genai
 from google.genai import errors, types
 
+from ..common_gemini import _CommonGemini
 from .utils import UNSUPPORTED_DOCUMENT_TYPES, UNSUPPORTED_EXTENSIONS, FileCache
 
 file_cache = FileCache()
@@ -58,7 +59,7 @@ IMAGE_GENERATION_MODELS = {
 DEFAULT_THOUGHT_SIGNATURE: bytes = b"skip_thought_signature_validator"
 
 
-class GoogleLargeLanguageModel(LargeLanguageModel):
+class GoogleLargeLanguageModel(_CommonGemini, LargeLanguageModel):
     is_thinking = None
 
     def _convert_messages_to_prompt(self, messages: list[PromptMessage]) -> str:
@@ -986,9 +987,19 @@ class GoogleLargeLanguageModel(LargeLanguageModel):
         # == InitConfig == #
 
         config = types.GenerateContentConfig()
+
+        # Parse custom headers
+        custom_headers = self._parse_custom_headers(credentials)
+
+        # Create HTTP options with custom headers
+        http_options = types.HttpOptions(
+            base_url=credentials.get("google_base_url", None),
+            headers=custom_headers if custom_headers else None
+        )
+
         genai_client = genai.Client(
             api_key=credentials["google_api_key"],
-            http_options=types.HttpOptions(base_url=credentials.get("google_base_url", None)),
+            http_options=http_options,
         )
 
         # == ChatConfig == #
@@ -1083,9 +1094,18 @@ class GoogleLargeLanguageModel(LargeLanguageModel):
         :return:
         """
         try:
+            # Parse custom headers
+            custom_headers = self._parse_custom_headers(credentials)
+
+            # Create HTTP options with custom headers
+            http_options = types.HttpOptions(
+                base_url=credentials.get("google_base_url", None),
+                headers=custom_headers if custom_headers else None
+            )
+
             genai_client = genai.Client(
                 api_key=credentials["google_api_key"],
-                http_options=types.HttpOptions(base_url=credentials.get("google_base_url", None)),
+                http_options=http_options,
             )
             genai_client.models.count_tokens(model=model, contents="ping")
         except Exception as ex:

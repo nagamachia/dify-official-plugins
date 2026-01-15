@@ -11,6 +11,7 @@ from typing import Optional, Union
 from collections.abc import Mapping
 
 from google import genai
+from google.genai import types
 from google.genai.types import EmbedContentConfig
 from google.generativeai.embedding import to_task_type
 
@@ -46,7 +47,19 @@ class GeminiTextEmbeddingModel(_CommonGemini, TextEmbeddingModel):
         :param user: unique user id
         :return: embeddings result
         """
-        client = genai.Client(api_key=credentials["google_api_key"])
+        # Parse custom headers
+        custom_headers = self._parse_custom_headers(credentials)
+
+        # Create HTTP options with custom headers
+        http_options = types.HttpOptions(
+            base_url=credentials.get("google_base_url", None),
+            headers=custom_headers if custom_headers else None
+        )
+
+        client = genai.Client(
+            api_key=credentials["google_api_key"],
+            http_options=http_options
+        )
 
         # get model properties
         context_size = self._get_context_size(model, credentials)
@@ -185,7 +198,19 @@ class GeminiTextEmbeddingModel(_CommonGemini, TextEmbeddingModel):
         :return:
         """
         try:
-            client = genai.Client(api_key=credentials["google_api_key"])
+            # Parse custom headers
+            custom_headers = self._parse_custom_headers(credentials)
+
+            # Create HTTP options with custom headers
+            http_options = types.HttpOptions(
+                base_url=credentials.get("google_base_url", None),
+                headers=custom_headers if custom_headers else None
+            )
+
+            client = genai.Client(
+                api_key=credentials["google_api_key"],
+                http_options=http_options
+            )
             client.models.embed_content(model=model, contents=["ping"])
         except Exception as ex:
             raise CredentialsValidateFailedError(str(ex))

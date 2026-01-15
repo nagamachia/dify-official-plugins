@@ -58,6 +58,15 @@ provider_credential_schema:
     required: false
     type: text-input
     variable: file_url
+  - label:
+      en_US: Custom Headers
+      zh_Hans: 自定义请求头
+    placeholder:
+      en_US: 'Enter custom headers in JSON format, e.g. {"X-Custom-Header": "value"}'
+      zh_Hans: '以JSON格式输入自定义请求头，例如 {"X-Custom-Header": "value"}'
+    required: false
+    type: text-input
+    variable: custom_headers
 supported_model_types:
   - llm
   - text-embedding
